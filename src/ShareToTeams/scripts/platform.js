@@ -7,7 +7,7 @@
         var img = document.createElement("img");
         img.src = "https://sharetoteams.blob.core.windows.net/public/teams-" + size + ".png";
         img.onclick = function () {
-            showPopUp("https://sharetoteams.azurewebsites.net/views/sharetoteams.html?url=" + encodeURIComponent(url), "_blank", 800, 600);
+            showPopUp("/views/sharetoteams.html?url=" + encodeURIComponent(url), "_blank", 800, 600);
         }
 
         var a = document.createElement("a");

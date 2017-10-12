@@ -1,7 +1,7 @@
 ﻿(function () {
     var config = {
-        clientId: "09cfe6bc-a798-4d31-863e-b50fec4d5c62",
-        redirectUri: "https://addtoteamdev.azurewebsites.net//views/sharetoteams.html",
+        clientId: "20db89ee-263a-40d6-9256-103029570676",
+        redirectUri: "http://addtoteamdev.azurewebsites.net/views/sharetoteams.html",
         scopes: ["User.Read", "User.Read.All", "Group.ReadWrite.All", "EduRoster.ReadBasic", "EduAssignments.ReadWriteBasic"],
         url: new URI().query(true).url
     }
@@ -94,11 +94,11 @@
         }).done(function (data) {
             $("#selectClass").empty();
             $("#selectClass").append("<option disabled selected>Choose a class</option>");
-            
+
             data.value.forEach(function (team) {
                 $("#selectClass").append("<option value='" + team.id + "'>" + team.displayName + "</option>");
             });
-            
+
             $("#selectClass").change(onClassSelect);
         }).fail(function (error) {
             displayError(error);
@@ -306,7 +306,7 @@
             postAnnouncement(announcementText);
         } else if (config.actionId === "assignment") {
             var assignmentName = $("#assignmentName").val();
-            var assignmentDueDate = new Date($("#assignmentDueDate input").val()).toISOString();            
+            var assignmentDueDate = new Date($("#assignmentDueDate input").val()).toISOString();
             postAssignment(assignmentName, assignmentDueDate);
         }
     }
