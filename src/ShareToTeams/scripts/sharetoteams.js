@@ -1,7 +1,7 @@
 ﻿(function () {
     var config = {
-        clientId: "4e3fa16f-9909-4bf6-9a66-5560e97e7082",
-        redirectUri: "https://sharetoteams.azurewebsites.net/views/sharetoteams.html",
+        clientId: "09cfe6bc-a798-4d31-863e-b50fec4d5c62",
+        redirectUri: "https://addtoteamdev.azurewebsites.net//views/sharetoteams.html",
         scopes: ["User.Read", "User.Read.All", "Group.ReadWrite.All", "EduRoster.ReadBasic", "EduAssignments.ReadWriteBasic"],
         url: new URI().query(true).url
     }
