@@ -86,7 +86,8 @@
         // Fetch user's joined teams.
         $.ajax({
             type: "GET",
-            url: "https://graph.microsoft.com/beta/me/joinedTeams?$select=id,displayName",
+            //url: "https://graph.microsoft.com/beta/me/joinedTeams?$select=id,displayName",
+            url: "https://graph.microsoft.com/beta/me/joinedTeams",
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
@@ -100,6 +101,21 @@
             });
 
             $("#selectClass").change(onClassSelect);
+        }).fail(function (error) {
+            displayError(error);
+        });
+    }
+    function fetchTeams2() {
+        // Fetch user's joined teams.
+        $.ajax({
+            type: "GET",
+            url: "https://graph.microsoft.com/beta/me/memberOf/$/microsoft.graph.group",
+            headers: {
+                "Accept": "application/json",
+                "Authorization": "Bearer " + config.accessToken
+            }
+        }).done(function (data) {
+            var a = data;
         }).fail(function (error) {
             displayError(error);
         });
