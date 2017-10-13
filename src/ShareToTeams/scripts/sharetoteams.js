@@ -3,7 +3,8 @@
         clientId: "20db89ee-263a-40d6-9256-103029570676",
         redirectUri: "https://addtoteamdev.azurewebsites.net/views/sharetoteams.html",
         scopes: ["User.Read", "User.Read.All", "Group.ReadWrite.All", "EduRoster.ReadBasic", "EduAssignments.ReadWriteBasic"],
-        url: new URI().query(true).url
+        url: new URI().query(true).url,
+        isTeacher: false
     }
 
     // Workaround to get MSAL to work with window.open. Figure this out with Azure.
@@ -80,6 +81,31 @@
         xhr.setRequestHeader("Authorization", "Bearer " + config.accessToken);
         xhr.responseType = "blob";
         xhr.send();
+
+        //Fetch user's roles to check if a teacher.
+        $.ajax({
+            type: "GET",
+            url: "https://graph.microsoft.com/beta/me/assignedLicenses",
+            headers: {
+                "Accept": "application/json",
+                "Authorization": "Bearer " + config.accessToken
+            }
+        }).done(function (data) {
+            if (data && data.value) {
+                $.each(data.value, function (i, val) {
+                    // Office 365 Education for faculty:
+                    //94763226-9b3c-4e75-a931-5c89701abe66
+                    //Office 365 Education for students:
+                    //314c4481-f395-4525-be8b-2ec4bb1e9d91
+                    if (val.skuId == '94763226-9b3c-4e75-a931-5c89701abe66') {
+                        config.isTeacher = true;
+                        return false;
+                    } 
+                });
+            }
+        }).fail(function (error) {
+            displayError(error);
+        });
     }
 
     function fetchTeams() {
@@ -105,21 +131,7 @@
             displayError(error);
         });
     }
-    function fetchTeams2() {
-        // Fetch user's joined teams.
-        $.ajax({
-            type: "GET",
-            url: "https://graph.microsoft.com/beta/me/memberOf/$/microsoft.graph.group",
-            headers: {
-                "Accept": "application/json",
-                "Authorization": "Bearer " + config.accessToken
-            }
-        }).done(function (data) {
-            var a = data;
-        }).fail(function (error) {
-            displayError(error);
-        });
-    }
+
 
     function postAnnouncement(announcementText) {
         // TODO: Teams has a bug converting URLs to thumbnails.
@@ -241,21 +253,24 @@
             $("#selectAction").removeClass("d-none");
             $("#selectAction").change(onActionSelect);
 
-            // Check if team is a class.
-            $.ajax({
-                type: "GET",
-                url: "https://graph.microsoft.com/beta/groups/" + config.teamId + "?$select=extension_fe2174665583431c953114ff7268b7b3_Education_ObjectType",
-                headers: {
-                    "Accept": "application/json",
-                    "Authorization": "Bearer " + config.accessToken
-                }
-            }).done(function (data) {
-                if (data.extension_fe2174665583431c953114ff7268b7b3_Education_ObjectType === "Section") {
-                    $("#selectAction").append("<option value='assignment'>Create an assignment</option>");
-                }
-            }).fail(function (error) {
-                displayError(error);
-            });
+            // Check if team is a class. Only a teacher can add assignment to a class.
+            if (config.isTeacher) {
+                $.ajax({
+                    type: "GET",
+                    url: "https://graph.microsoft.com/beta/groups/" + config.teamId + "?$select=extension_fe2174665583431c953114ff7268b7b3_Education_ObjectType",
+                    headers: {
+                        "Accept": "application/json",
+                        "Authorization": "Bearer " + config.accessToken
+                    }
+                }).done(function (data) {
+                    if (data.extension_fe2174665583431c953114ff7268b7b3_Education_ObjectType === "Section") {
+                        $("#selectAction").append("<option value='assignment'>Create an assignment</option>");
+                    }
+                }).fail(function (error) {
+                    displayError(error);
+                });
+            }
+
 
             // Fetch team's channels.
             $.ajax({
