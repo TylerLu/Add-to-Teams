@@ -25,6 +25,10 @@
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -78,11 +82,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="assets\favicon.ico" />
+    <Content Include="consent.html" />
     <Content Include="index.html" />
-    <Content Include="scripts\jquery-3.1.1.min.js" />
+    <Content Include="scripts\consent.js" />
     <Content Include="scripts\platform.js" />
     <Content Include="scripts\sharetoteams.js" />
-    <Content Include="scripts\URI.js" />
     <Content Include="styles\sharetoteams.css" />
     <Content Include="views\sharetoteams.html" />
     <Content Include="Web.config" />

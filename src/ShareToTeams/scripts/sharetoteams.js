@@ -1,57 +1,50 @@
 ﻿(function () {
-    var config = {
-        clientId: "20db89ee-263a-40d6-9256-103029570676",
-        redirectUri: "https://addtoteamdev.azurewebsites.net/views/sharetoteams.html",
-        scopes: ["User.Read", "User.Read.All", "Group.ReadWrite.All", "EduRoster.ReadBasic", "EduAssignments.ReadWriteBasic"],
-        url: new URI().query(true).url,
-        isTeacher: false
-    }
-
-    // Workaround to get MSAL to work with window.open. Figure this out with Azure.
-    window.opener = null;
-
-    // Fix for MSAL bug with Edge/IE.
-    new Msal.Storage("localStorage");
-
-    var userAgentApplication = new Msal.UserAgentApplication(config.clientId, null, requestTokenReceived, { redirectUri: config.redirectUri });
+    // Create config and get AuthenticationContext
+    window.config = {
+        // Domain of Azure AD tenant
+        tenant: "canvizEDU.onmicrosoft.com",
+        // ClientId of Azure AD application principal
+        clientId: "4e3fa16f-9909-4bf6-9a66-5560e97e7082",
+        postLogoutRedirectUri: window.location.origin,
+        endpoints: {
+            graphApiUri: "https://graph.microsoft.com"
+        },
+        cacheLocation: "localStorage",
+        accessToken: "",
+        isTeacher: false,
+        url:window.location.href
+    };
+    var authContext = new AuthenticationContext(config);
+    var isCallback = authContext.isCallback(window.location.hash);
+    authContext.handleWindowCallback();
 
     window.onload = function () {
-        if (!userAgentApplication.isCallback(window.location.hash) && window.parent === window) {
-            getAccessToken();
-        }
+        getAccessToken();
     }
 
-    function requestTokenReceived(errorDesc, requestToken, error, tokenType) {
-        if (errorDesc) {
-            alert(errorDesc);
-        } else {
-            getAccessToken();
-        }
-    }
-
+    /*
+    Acquiring an Access Token
+    */
     function getAccessToken() {
-        var user = userAgentApplication.getUser();
+        var user = authContext.getCachedUser();
         if (!user) {
-            // If user is not signed in, then prompt user to sign in via loginRedirect.
-            userAgentApplication.loginRedirect(config.scopes);
-        } else {
-            // Try to acquire the token silently first.
-            userAgentApplication.acquireTokenSilent(config.scopes)
-                .then(function (accessToken) {
-                    config.accessToken = accessToken;
-                    fetchUser();
-                    fetchTeams();
-                }, function (error) {
-                    // If acquireTokenSilent() method fails, then acquire the token interactively via acquireTokenRedirect().
-                    // In this case, the browser will redirect user back to the Azure Active Directory v2 Endpoint so the user 
-                    // can re-type the current username and password and/ or give consent to new permissions your application is requesting.
-                    // After authentication/authorization completes, this page will be reloaded again and getAccessToken() will be called.
-                    // Then, acquireTokenSilent will then acquire the token silently and the Graph API call results will be made.
-                    userAgentApplication.acquireTokenRedirect(config.scopes);
-                });
+            authContext.login();
         }
+        authContext.acquireToken(config.endpoints.graphApiUri, function (error, token) {
+            if (error || !token) {
+                console.log("ADAL error occurred: " + error);
+                return;
+            }
+            else {
+                config.accessToken = token;
+                fetchUser();
+                fetchTeams();
+            }
+        });
     }
-
+    /*
+    Get current user, user photo, check user is teacher or not  
+    */
     function fetchUser() {
         // Fetch user's metadata.
         $.ajax({
@@ -100,20 +93,20 @@
                     if (val.skuId == '94763226-9b3c-4e75-a931-5c89701abe66') {
                         config.isTeacher = true;
                         return false;
-                    } 
+                    }
                 });
             }
         }).fail(function (error) {
             displayError(error);
         });
     }
-
+    /*
+    Fetch user's joined teams.
+    */
     function fetchTeams() {
-        // Fetch user's joined teams.
         $.ajax({
             type: "GET",
-            //url: "https://graph.microsoft.com/beta/me/joinedTeams?$select=id,displayName",
-            url: "https://graph.microsoft.com/beta/me/joinedTeams",
+            url: "https://graph.microsoft.com/beta/me/joinedTeams?$select=id,displayName",
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
@@ -121,48 +114,16 @@
         }).done(function (data) {
             $("#selectClass").empty();
             $("#selectClass").append("<option disabled selected>Choose a class</option>");
-
             data.value.forEach(function (team) {
                 $("#selectClass").append("<option value='" + team.id + "'>" + team.displayName + "</option>");
             });
-
-            $("#selectClass").change(onClassSelect);
         }).fail(function (error) {
             displayError(error);
         });
     }
-
-
-    function postAnnouncement(announcementText) {
-        // TODO: Teams has a bug converting URLs to thumbnails.
-        var announcement = {
-            "rootMessage": {
-                "body": {
-                    "contentType": 1,
-                    "content": "<div><div>" + announcementText + "</div><div>" + config.url + "</div></div>"
-                }
-            }
-        }
-
-        $.ajax({
-            type: "POST",
-            url: "https://graph.microsoft.com/beta/groups/" + config.teamId + "/channels/" + config.channelId + "/chatthreads",
-            headers: {
-                "Accept": "application/json",
-                "Authorization": "Bearer " + config.accessToken
-            },
-            data: JSON.stringify(announcement),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json"
-        }).done(function (data) {
-            $("#panel2").addClass("d-none");
-            $("#panel3").removeClass("d-none");
-            $("#button3").click(onButton3Click);
-        }).fail(function (error) {
-            displayError(error);
-        });
-    }
-
+    /*
+    Post a assignment
+    */
     function postAssignment(assignmentName, assignmentDueDate) {
         // TODO: Allow adding of instructions. Currently a bug with Assignment's API.
         var assignment = {
@@ -191,25 +152,23 @@
             dataType: "json"
         }).done(function (data) {
             $("#panel2").addClass("d-none");
-            $("#panel3").removeClass("d-none");
-            $("#button3").click(onButton3Click);
-
             addAssignmentResource(data);
         }).fail(function (error) {
             displayError(error);
         });
     }
-
+    /*
+    Add assignment resource
+    */
     function addAssignmentResource(assignment) {
         // TODO: Use site's actual title as display name.
         var resource = {
             "resource": {
-                "displayName": config.url,
+                "displayName": $(document).attr("title"),
                 "link": config.url,
                 "@odata.type": "#microsoft.education.assignments.api.educationLinkResource"
             }
         }
-
         $.ajax({
             type: "POST",
             url: "https://graph.microsoft.com/testeduapi/education/classes/" + config.teamId + "/assignments/" + assignment.id + "/resources",
@@ -226,7 +185,9 @@
             displayError(error);
         });
     }
-
+    /*
+    Publish assignment
+    */
     function publishAssignment(assignment) {
         $.ajax({
             type: "POST",
@@ -238,20 +199,79 @@
             contentType: "application/json; charset=utf-8",
             dataType: "json"
         }).done(function (data) {
+            $("#panel3").removeClass("d-none");
+            getAssignments();
         }).fail(function (error) {
             displayError(error);
         });
     }
-
+    /*
+    Get Assignments
+    */
+    function getAssignments() {
+        $.ajax({
+            type: "GET",
+            url: "https://graph.microsoft.com/testeduapi/education/classes/" + config.teamId + "/assignments",
+            headers: {
+                "Accept": "application/json",
+                "Authorization": "Bearer " + config.accessToken
+            }
+        }).done(function (data) {
+            if (data && data.value) {
+                var html = "";
+                $.each(data.value, function (i, val) {
+                    html += "<tr>";
+                    html += "<td>" + val.displayName + "</td>";
+                    html += "<td>" + val.status + "</td>";
+                    html += "<td>" + new Date(val.dueDateTime).toLocaleDateString() + "</td>";
+                    html += "</tr>";
+                });
+                $("#assignmentsList").removeClass("d-none");
+                $("#assignmentsList table tbody").html(html);
+            }
+        }).fail(function (error) {
+            displayError(error);
+        });
+    }
+    /*
+    Post annoucement
+    */
+    function postAnnouncement(announcementText) {
+        // TODO: Teams has a bug converting URLs to thumbnails.
+        var announcement = {
+            "rootMessage": {
+                "body": {
+                    "contentType": 1,
+                    "content": "<div>" + announcementText + "</div>"
+                }
+            }
+        }
+        $.ajax({
+            type: "POST",
+            url: "https://graph.microsoft.com/beta/groups/" + config.teamId + "/channels/" + config.channelId + "/chatthreads",
+            headers: {
+                "Accept": "application/json",
+                "Authorization": "Bearer " + config.accessToken
+            },
+            data: JSON.stringify(announcement),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json"
+        }).done(function (data) {
+            $("#panel2").addClass("d-none");
+            $("#panel3").removeClass("d-none");
+        }).fail(function (error) {
+            displayError(error);
+        });
+    }
+    /*
+    Class Select Change
+    */
     function onClassSelect() {
         var teamId = $("#selectClass").val();
         if (teamId) {
             config.teamId = teamId;
-            $("#selectAction").empty();
-            $("#selectAction").append("<option disabled selected>Choose an action</option>");
-            $("#selectAction").append("<option value='announcement'>Make an announcement</option>");
-            $("#selectAction").removeClass("d-none");
-            $("#selectAction").change(onActionSelect);
+            showComponentByGroupChange("class");
+
 
             // Check if team is a class. Only a teacher can add assignment to a class.
             if (config.isTeacher) {
@@ -270,9 +290,15 @@
                     displayError(error);
                 });
             }
-
-
-            // Fetch team's channels.
+        }
+    }
+    /*
+    Action Select Change
+    */
+    function onActionSelect() {
+        var actionId = $("#selectAction").val();
+        if (actionId) {
+            config.actionId = actionId;
             $.ajax({
                 type: "GET",
                 url: "https://graph.microsoft.com/beta/groups/" + config.teamId + "/channels",
@@ -281,28 +307,56 @@
                     "Authorization": "Bearer " + config.accessToken
                 }
             }).done(function (data) {
-                // TODO: Allow teachers to specify which channel to post to.
-                var generalChannel = data.value.find(function (element) {
-                    return element.displayName === "General";
+                showComponentByGroupChange("action");
+                data.value.forEach(function (channel) {
+                    $("#selectChannel").append("<option value='" + channel.id + "'>" + channel.displayName + "</option>");
                 });
-
-                if (generalChannel) {
-                    config.channelId = generalChannel.id;
-                } else {
-                    alert("Could not find the General channel");
-                }
             }).fail(function (error) {
                 displayError(error);
             });
         }
     }
+    /*
+    Channel Select Change
+    */
+    function onChannelSelect() {
+        var channelId = $("#selectChannel").val();
+        if (channelId) {
+            config.channelId = channelId;
+            showComponentByGroupChange("channel");
+        }
+    }
+    /*
+    Show/Hide Dropdown when select change.
+    */
+    function showComponentByGroupChange(group) {
+        if (group == "class") {
+            $("#selectAction").empty();
+            $("#selectAction").append("<option disabled selected>Choose an action</option>");
+            $("#selectAction").append("<option value='announcement'>Make an announcement</option>");
+            $("#selectAction").removeClass("d-none");
 
-    function onActionSelect() {
-        var actionId = $("#selectAction").val();
-        if (actionId) {
-            config.actionId = actionId;
+            $("#selectChannel").empty();
+            $("#selectChannel").addClass("d-none");
+            $("#button1").addClass("d-none");
+        }
+        else if (group == "action") {
+            var actionId = $("#selectAction").val();
+
+            $("#selectChannel").empty();
+            $("#selectChannel").append("<option disabled selected>Choose a channel</option>");
+
+            if (actionId && actionId == "announcement") {
+                $("#selectChannel").removeClass("d-none");
+                $("#button1").addClass("d-none");
+            }
+            else {
+                $("#selectChannel").addClass("d-none");
+                $("#button1").removeClass("d-none");
+            }
+        }
+        else {
             $("#button1").removeClass("d-none");
-            $("#button1").click(onButton1Click);
         }
     }
 
@@ -325,7 +379,6 @@
 
         $("#panel1").addClass("d-none");
         $("#panel2").removeClass("d-none");
-        $("#button2").click(onButton2Click);
     }
 
     function onButton2Click() {
@@ -353,4 +406,11 @@
             alert(JSON.stringify(error));
         }
     }
+    
+    $("#selectClass").change(onClassSelect);
+    $("#selectAction").change(onActionSelect);
+    $("#selectChannel").change(onChannelSelect);
+    $("#button1").click(onButton1Click);
+    $("#button2").click(onButton2Click);
+    $("#button3").click(onButton3Click);
 })();
