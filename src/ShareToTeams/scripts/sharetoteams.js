@@ -1,18 +1,14 @@
 ﻿(function () {
     // Create config and get AuthenticationContext
     window.config = {
-        // Domain of Azure AD tenant
-        tenant: "canvizEDU.onmicrosoft.com",
-        // ClientId of Azure AD application principal
-        clientId: "4e3fa16f-9909-4bf6-9a66-5560e97e7082",
-        postLogoutRedirectUri: window.location.origin,
-        endpoints: {
-            graphApiUri: "https://graph.microsoft.com"
-        },
+        tenant: constant.tenant,
+        clientId: constant.clientId,
+        postLogoutRedirectUri: constant.postLogoutRedirectUri,
         cacheLocation: "localStorage",
         accessToken: "",
         isTeacher: false,
-        url:window.location.href
+        url: window.location.href,
+        userDisplayName: ""
     };
     var authContext = new AuthenticationContext(config);
     var isCallback = authContext.isCallback(window.location.hash);
@@ -30,7 +26,7 @@
         if (!user) {
             authContext.login();
         }
-        authContext.acquireToken(config.endpoints.graphApiUri, function (error, token) {
+        authContext.acquireToken(constant.graphApiUri, function (error, token) {
             if (error || !token) {
                 console.log("ADAL error occurred: " + error);
                 return;
@@ -49,12 +45,13 @@
         // Fetch user's metadata.
         $.ajax({
             type: "GET",
-            url: "https://graph.microsoft.com/beta/me?$select=userPrincipalName",
+            url: constant.graphApiUri + "/" + constant.graphVersion + "/me?$select=userPrincipalName,displayName",
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
             }
         }).done(function (data) {
+            config.userDisplayName = (data.displayName == null ? data.userPrincipalName : data.displayName);
             $("#username").html(data.userPrincipalName);
         }).fail(function (error) {
             displayError(error);
@@ -70,7 +67,7 @@
                 $("#content").removeClass("d-none");
             }
         }
-        xhr.open("GET", "https://graph.microsoft.com/beta/me/photos/48x48/$value");
+        xhr.open("GET", constant.graphApiUri + "/" + constant.graphVersion + "/me/photos/48x48/$value");
         xhr.setRequestHeader("Authorization", "Bearer " + config.accessToken);
         xhr.responseType = "blob";
         xhr.send();
@@ -78,7 +75,7 @@
         //Fetch user's roles to check if a teacher.
         $.ajax({
             type: "GET",
-            url: "https://graph.microsoft.com/beta/me/assignedLicenses",
+            url: constant.graphApiUri + "/" + constant.graphVersion + "/me/assignedLicenses",
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
@@ -86,11 +83,7 @@
         }).done(function (data) {
             if (data && data.value) {
                 $.each(data.value, function (i, val) {
-                    // Office 365 Education for faculty:
-                    //94763226-9b3c-4e75-a931-5c89701abe66
-                    //Office 365 Education for students:
-                    //314c4481-f395-4525-be8b-2ec4bb1e9d91
-                    if (val.skuId == '94763226-9b3c-4e75-a931-5c89701abe66') {
+                    if (val.skuId == constant.faculty) {
                         config.isTeacher = true;
                         return false;
                     }
@@ -106,7 +99,7 @@
     function fetchTeams() {
         $.ajax({
             type: "GET",
-            url: "https://graph.microsoft.com/beta/me/joinedTeams?$select=id,displayName",
+            url: constant.graphApiUri + "/" + constant.graphVersion + "/me/joinedTeams?$select=id,displayName",
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
@@ -142,7 +135,7 @@
 
         $.ajax({
             type: "POST",
-            url: "https://graph.microsoft.com/testeduapi/education/classes/" + config.teamId + "/assignments",
+            url: constant.graphApiUri + "/" + constant.eduApiVersion + "/education/classes/" + config.teamId + "/assignments",
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
@@ -171,7 +164,7 @@
         }
         $.ajax({
             type: "POST",
-            url: "https://graph.microsoft.com/testeduapi/education/classes/" + config.teamId + "/assignments/" + assignment.id + "/resources",
+            url: constant.graphApiUri + "/" + constant.eduApiVersion + "/education/classes/" + config.teamId + "/assignments/" + assignment.id + "/resources",
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
@@ -191,7 +184,7 @@
     function publishAssignment(assignment) {
         $.ajax({
             type: "POST",
-            url: "https://graph.microsoft.com/testeduapi/education/classes/" + config.teamId + "/assignments/" + assignment.id + "/publish",
+            url: constant.graphApiUri + "/" + constant.eduApiVersion + "/education/classes/" + config.teamId + "/assignments/" + assignment.id + "/publish",
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
@@ -211,7 +204,7 @@
     function getAssignments() {
         $.ajax({
             type: "GET",
-            url: "https://graph.microsoft.com/testeduapi/education/classes/" + config.teamId + "/assignments",
+            url: constant.graphApiUri + "/" + constant.eduApiVersion + "/education/classes/" + config.teamId + "/assignments",
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
@@ -248,7 +241,7 @@
         }
         $.ajax({
             type: "POST",
-            url: "https://graph.microsoft.com/beta/groups/" + config.teamId + "/channels/" + config.channelId + "/chatthreads",
+            url: constant.graphApiUri + "/" + constant.graphVersion + "/groups/" + config.teamId + "/channels/" + config.channelId + "/chatthreads",
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
@@ -301,7 +294,7 @@
             config.actionId = actionId;
             $.ajax({
                 type: "GET",
-                url: "https://graph.microsoft.com/beta/groups/" + config.teamId + "/channels",
+                url: constant.graphApiUri + "/" + constant.graphVersion + "/groups/" + config.teamId + "/channels",
                 headers: {
                     "Accept": "application/json",
                     "Authorization": "Bearer " + config.accessToken
@@ -362,9 +355,9 @@
 
     function onButton1Click() {
         // TODO: Replace with thumbnail and snippet generator.
-        $("#thumbnail").prop("src", "https://sharetoteams.blob.core.windows.net/public/khan-256.png");
+        $("#thumbnail").prop("src", "/assets/khan-256.png");
         $("#caption").empty();
-        $("#caption").append("<h5>Khan Academy</h5>");
+        $("#caption").append("<h5>" + config.userDisplayName + "</h5>");
         $("#caption").append("<p>You can learn anything. Expert-created content and resources for every subject and level. Always free.</p>");
 
         if (config.actionId === "announcement") {

@@ -1,13 +1,7 @@
 ﻿$(function () {
-    var variables = {
-        // Domain of Azure AD tenant
-        azureAD: "canvizEDU.onmicrosoft.com",
-        // ClientId of Azure AD application principal
-        clientId: "4e3fa16f-9909-4bf6-9a66-5560e97e7082",
-        postLogoutRedirectUri: window.location.origin
-    }
+
     $("#btnConsent").click(function () {
-        var url = "https://login.microsoftonline.com/canvizEDU.onmicrosoft.com/oauth2/authorize?response_type=id_token&client_id=" + variables.clientId + "&redirect_uri=" + variables.postLogoutRedirectUri + "&state=" + guid() + "&client-request-id=" + guid() + "&x-client-SKU=Js&x-client-Ver=1.0.15&nonce=" + guid() + "&prompt=admin_consent";
+        var url = constant.AADInstance + constant.tenant + "/oauth2/authorize?response_type=id_token&client_id=" + constant.clientId + "&redirect_uri=" + constant.postLogoutRedirectUri + "&state=" + guid() + "&client-request-id=" + guid() + "&x-client-SKU=Js&x-client-Ver=1.0.15&nonce=" + guid() + "&prompt=admin_consent";
         window.location.href = url;
     });
 

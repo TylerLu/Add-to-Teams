@@ -1,11 +1,10 @@
 ﻿(function () {
     var elements = document.getElementsByClassName("sharetoteams");
     Array.prototype.forEach.call(elements, function (element) {
-        var size = element.dataset.size;
         var url = element.dataset.url;
 
         var img = document.createElement("img");
-        img.src = "https://sharetoteams.blob.core.windows.net/public/teams-" + size + ".png";
+        img.src = "/assets/teams-32.png";
         img.onclick = function () {
             showPopUp("/views/sharetoteams.html?url=" + encodeURIComponent(url), "_blank", 800, 600);
         }
