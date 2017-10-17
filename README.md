@@ -100,7 +100,7 @@ The sample demonstrates:
 
    Click **Save**.
 
-9. Click **Reply URLs**. Add **https://<yoursiteurl>**  and **https://<yoursiteurl>/views/sharetoteams.html** to it. Make sure replace <yoursiteurl> to the real URL.
+9. Click **Reply URLs**. Add **https://yoursiteurl**  and **https://yoursiteurl/views/sharetoteams.html** to it. Make sure replace **yoursiteurl** to the real URL.
 
    ![](Images/aad-create-app-09.png)
 
@@ -123,8 +123,8 @@ Debug the **ShareToTeams**:
 
 
 2. Set **ShareToTeams** as Startup project, and press F5. 
-3. Go to https://<your site URL>/consent.html. Click the **Consent** button to do admin consent. After consent succeed, a teacher/student can login to the demo site.
-4. Go to https://<your site URL>, click the "Add to Teams" button on the page, a popup window will show and display groups/classes that current user joined. Select a group/class to add announcements or assignments.
+3. Go to https://yoursiteURL/consent.html. Click the **Consent** button to do admin consent. After consent succeed, a teacher/student can login to the demo site.
+4. Go to https://yoursiteURL, click the "Add to Teams" button on the page, a popup window will show and display groups/classes that current user joined. Select a group/class to add announcements or assignments.
 
 ## Understand the code
 
