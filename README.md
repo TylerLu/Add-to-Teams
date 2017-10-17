@@ -6,7 +6,7 @@ In this sample we show you how to add announcements & assignments via the Graph 
 * [Sample Goals](#sample-goals)
 * [Prerequisites](#prerequisites)
 * [Register the application in Azure Active Directory](#register-the-application-in-azure-active-directory)
-* [Build and debug locally](#build-and-debug-locally)
+* [Build and debug locally](#build-and-run-locally)
 * [Understand the code](#understand-the-code)
 * [Contributing](#contributing)
 
