@@ -1,8 +1,8 @@
 ﻿var constant = {
     // Domain of Azure AD tenant
-    tenant: "Your domain of Azure Ad tenant.onmicrosoft.com",
+    tenant: "canvizEDU.onmicrosoft.com",
     // ClientId of Azure AD application principal
-    clientId: "Input your client id",
+    clientId: "4e3fa16f-9909-4bf6-9a66-5560e97e7082",
     // Redirect Url
     postLogoutRedirectUri: window.location.origin,
     // Microsoft Graph Url
