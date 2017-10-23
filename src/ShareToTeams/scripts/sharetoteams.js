@@ -8,7 +8,8 @@
         accessToken: "",
         isTeacher: false,
         url: window.location.href,
-        userDisplayName: ""
+        userDisplayName: "",
+        userId:""
     };
     var authContext = new AuthenticationContext(config);
     var isCallback = authContext.isCallback(window.location.hash);
@@ -45,12 +46,13 @@
         // Fetch user's metadata.
         $.ajax({
             type: "GET",
-            url: constant.graphApiUri + "/" + constant.graphVersion + "/me?$select=userPrincipalName,displayName",
+            url: constant.graphApiUri + "/" + constant.graphVersion + "/me?$select=id,userPrincipalName,displayName",
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
             }
         }).done(function (data) {
+            config.userId = (data.id == null ? "" : data.id);
             config.userDisplayName = (data.displayName == null ? data.userPrincipalName : data.displayName);
             $("#username").html(data.userPrincipalName);
         }).fail(function (error) {
@@ -72,27 +74,8 @@
         xhr.responseType = "blob";
         xhr.send();
 
-        //Fetch user's roles to check if a teacher.
-        $.ajax({
-            type: "GET",
-            url: constant.graphApiUri + "/" + constant.graphVersion + "/me/assignedLicenses",
-            headers: {
-                "Accept": "application/json",
-                "Authorization": "Bearer " + config.accessToken
-            }
-        }).done(function (data) {
-            if (data && data.value) {
-                $.each(data.value, function (i, val) {
-                    if (val.skuId == constant.faculty) {
-                        config.isTeacher = true;
-                        return false;
-                    }
-                });
-            }
-        }).fail(function (error) {
-            displayError(error);
-        });
     }
+
     /*
     Fetch user's joined teams.
     */
@@ -115,12 +98,15 @@
         });
     }
     /*
-    Post a assignment
+    Post an assignment
     */
     function postAssignment(assignmentName, assignmentDueDate) {
         // TODO: Allow adding of instructions. Currently a bug with Assignment's API.
+        // KAW I believe the instructions should be fixed.  Please try as per doc
+       
         var assignment = {
             "displayName": assignmentName,
+            //"instructions": {"content": "here is instructions", "contentType": "text" },
             "dueDateTime": assignmentDueDate,
             "status": "draft",
             "allowStudentsToAddResourcesToSubmission": true,
@@ -132,10 +118,10 @@
                 "@odata.type": "#microsoft.education.assignments.api.educationAssignmentClassRecipient"
             }
         }
-
+        var url = constant.graphApiUri + "/" + constant.eduApiVersion + "/education/classes/" + config.teamId + "/assignments";
         $.ajax({
             type: "POST",
-            url: constant.graphApiUri + "/" + constant.eduApiVersion + "/education/classes/" + config.teamId + "/assignments",
+            url: url,
             headers: {
                 "Accept": "application/json",
                 "Authorization": "Bearer " + config.accessToken
@@ -154,7 +140,6 @@
     Add assignment resource
     */
     function addAssignmentResource(assignment) {
-        // TODO: Use site's actual title as display name.
         var resource = {
             "resource": {
                 "displayName": $(document).attr("title"),
@@ -230,7 +215,6 @@
     Post annoucement
     */
     function postAnnouncement(announcementText) {
-        // TODO: Teams has a bug converting URLs to thumbnails.
         var announcement = {
             "rootMessage": {
                 "body": {
@@ -256,6 +240,54 @@
             displayError(error);
         });
     }
+
+    //Check if current user is a teacher in selected class.
+    function checkUserATeacher() {
+        config.isTeacher = false;
+        $.ajax({
+            type: "GET",
+            url: constant.graphApiUri + "/" + constant.eduApiVersion + "/education/classes/" + config.teamId + "/teachers",
+            headers: {
+                "Accept": "application/json",
+                "Authorization": "Bearer " + config.accessToken
+            }
+        }).done(function (data) {
+            if (data && data.value) {
+                $.each(data.value, function (i, val) {
+                    if (val.id == config.userId) {
+                        config.isTeacher = true;
+                        enalbeAddAssignment();
+                        return false;
+                    }
+                });
+            }
+        }).fail(function (error) {
+            displayError(error);
+        });
+    }
+
+    // Check if team is a class. A teacher can only add assignment to a class.
+    function enalbeAddAssignment() {
+        if (config.isTeacher) {
+            $.ajax({
+                type: "GET",
+                url: "https://graph.microsoft.com/beta/groups/" + config.teamId + "?$select=extension_fe2174665583431c953114ff7268b7b3_Education_ObjectType",
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": "Bearer " + config.accessToken
+                }
+            }).done(function (data) {
+                if (data.extension_fe2174665583431c953114ff7268b7b3_Education_ObjectType === "Section") {
+                    $("#selectAction").append("<option value='assignment'>Create an assignment</option>");
+                }
+            }).fail(function (error) {
+                displayError(error);
+            });
+        }
+
+    }
+
+
     /*
     Class Select Change
     */
@@ -263,28 +295,13 @@
         var teamId = $("#selectClass").val();
         if (teamId) {
             config.teamId = teamId;
+            $("#selectAction").empty();
+            checkUserATeacher();
             showComponentByGroupChange("class");
-
-
-            // Check if team is a class. Only a teacher can add assignment to a class.
-            if (config.isTeacher) {
-                $.ajax({
-                    type: "GET",
-                    url: "https://graph.microsoft.com/beta/groups/" + config.teamId + "?$select=extension_fe2174665583431c953114ff7268b7b3_Education_ObjectType",
-                    headers: {
-                        "Accept": "application/json",
-                        "Authorization": "Bearer " + config.accessToken
-                    }
-                }).done(function (data) {
-                    if (data.extension_fe2174665583431c953114ff7268b7b3_Education_ObjectType === "Section") {
-                        $("#selectAction").append("<option value='assignment'>Create an assignment</option>");
-                    }
-                }).fail(function (error) {
-                    displayError(error);
-                });
-            }
         }
     }
+
+
     /*
     Action Select Change
     */
