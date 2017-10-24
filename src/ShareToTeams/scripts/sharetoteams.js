@@ -102,7 +102,6 @@
     */
     function postAssignment(assignmentName, assignmentDueDate) {
         // TODO: Allow adding of instructions. Currently a bug with Assignment's API.
-        // KAW I believe the instructions should be fixed.  Please try as per doc
        
         var assignment = {
             "displayName": assignmentName,
@@ -277,8 +276,9 @@
                     "Authorization": "Bearer " + config.accessToken
                 }
             }).done(function (data) {
-                if (data.extension_fe2174665583431c953114ff7268b7b3_Education_ObjectType === "Section") {
-                    $("#selectAction").append("<option value='assignment'>Create an assignment</option>");
+                if (data.extension_fe2174665583431c953114ff7268b7b3_Education_ObjectType === "Section" &&
+                    $("#selectAction option[value='assignment']").length <= 0) {
+                     $("#selectAction").append("<option value='assignment'>Create an assignment</option>");
                 }
             }).fail(function (error) {
                 displayError(error);

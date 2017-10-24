@@ -26,10 +26,11 @@ The sample demonstrates:
 
 **Deploying and running this sample requires**:
 * An Azure subscription with permissions to register a new application, and deploy the web app.
+* SDS enabled is a prereq.  The user can use SDS, Teams or the Edu API to create Teams.  
 * An O365 Education tenant with Microsoft School Data Sync enabled
     * One of the following browsers: Edge, Internet Explorer 9, Safari 5.0.6, Firefox 5, Chrome 13, or a later version of one of these browsers.
       Additionally: Developing/running this sample locally requires the following:  
-    * Visual Studio 2015 (any edition), [Visual Studio 2015 Community](https://go.microsoft.com/fwlink/?LinkId=691978&clcid=0x409) is available for free.
+    * Visual Studio 2015 or later.
     * Familiarity with C#, .NET Web applications, JavaScript programming and web services.
 
 ## Register the application in Azure Active Directory
@@ -46,7 +47,7 @@ The sample demonstrates:
 
 4. Input a **Name**, and select **Web app / API** as **Application Type**.
 
-   Input **Sign-on URL**: https://localhost:44311/. This URL can be any port that make sense. 
+   Input **Sign-on URL**: https://localhost:44311/. This URL and port can be any that make sense.  In this demo we shows how to run the app locally, and the local site port is 44311.
 
    ![](Images/aad-create-app-02.png)
 
@@ -72,13 +73,15 @@ The sample demonstrates:
 
      | API             | Application Permissions | Delegated Permissions                    |
      | --------------- | ----------------------- | ---------------------------------------- |
-     | Microsoft Graph | N/A                     | Sign in and read user profile<br/> Read all users' full profiles<br/> Read and write all groups<br/> Read a limited subset of users' view of the roster<br/> Read users' view of the roster<br/> Read users' class assignments without grades<br/> Read users' class assignments and their grades<br/> Read and write users' class assignments without grades<br/>  Read and write users' class assignments and their grades |
+     | Microsoft Graph | N/A                     | Sign in and read user profile<br/>Read all users' full profiles<br/>Read and write all groups<br/>Read a limited subset of users' view of the roster<br/>Read and write users' class assignments and their grades |
 
      ![](/Images/aad-create-app-06.png)
 
      ​
 
-     ​
+     Notice: if the Microsoft Graph permission is not listed, click **Add** and then select **Microsoft Graph**. 
+
+     ![](Images/aad-create-app-10.png)
 
    * Click **Keys**, then add a new key:
 
@@ -88,7 +91,13 @@ The sample demonstrates:
 
    Close the Settings window.
 
-8. Click **Manifest**.
+8. Click **Reply URLs**. Add **https://localhost:44311/**  and **https://localhost:44311/views/sharetoteams.html** to it. Make sure replace **yoursiteurl** to the real URL.
+
+   ![](Images/aad-create-app-09.png)
+
+   Click **Save**.
+
+9. Click **Manifest**.
 
    ![](Images/aad-create-app-08.png)
 
@@ -100,17 +109,11 @@ The sample demonstrates:
 
    Click **Save**.
 
-9. Click **Reply URLs**. Add **https://yoursiteurl**  and **https://yoursiteurl/views/sharetoteams.html** to it. Make sure replace **yoursiteurl** to the real URL.
-
-   ![](Images/aad-create-app-09.png)
-
-   Click **Save**.
+   ​
 
 ## Build and Run locally
 
-This project can be opened with the edition of Visual Studio 2015 you already have, or download and install the Community edition to run, build and/or develop this application locally.
-
-- [Visual Studio 2015 Community](https://go.microsoft.com/fwlink/?LinkId=691978&clcid=0x409)
+This project can be opened with the edition of Visual Studio 2015 or later you already have, or download and install the Community edition to run, build and/or develop this application locally.
 
 Debug the **ShareToTeams**:
 
@@ -118,13 +121,20 @@ Debug the **ShareToTeams**:
 
    ![](Images/proj01.png)
 
-   - **clientId**: use the Client Id of the app registration you created earlier.
-   - **tenant**: use your domain of Azure AD tenant.
+   - **clientId**: use the application Id of the app registration you created earlier.
+
+     ![](/Images/aad-create-app-04.png)
+
+   - ​
 
 
 2. Set **ShareToTeams** as Startup project, and press F5. 
-3. Go to https://yoursiteURL/consent.html. Click the **Consent** button to do admin consent. After consent succeed, a teacher/student can login to the demo site.
-4. Go to https://yoursiteURL, click the "Add to Teams" button on the page, a popup window will show and display groups/classes that current user joined. Select a group/class to add announcements or assignments.
+
+3. Go to https://localhost:44311/consent.html. Click the **Consent** button to do admin consent. After the button is clicked, you need to login with an admin user for the tenant.
+
+   After consent succeed, a teacher/student can login to the demo site.
+
+4. Go to https://localhost:44311/, click the "Add to Teams" button on the page, a popup window will show and display groups/classes that current user joined. Select a group/class to add announcements or assignments.
 
 ## Understand the code
 
