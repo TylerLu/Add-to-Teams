@@ -1,7 +1,7 @@
 ﻿$(function () {
 
     $("#btnConsent").click(function () {
-        var url = constant.AADInstance + constant.tenant + "/oauth2/authorize?response_type=id_token&client_id=" + constant.clientId + "&redirect_uri=" + constant.postLogoutRedirectUri + "&state=" + guid() + "&client-request-id=" + guid() + "&x-client-SKU=Js&x-client-Ver=1.0.15&nonce=" + guid() + "&prompt=admin_consent";
+        var url = constant.AADInstance + constant.tenant + "/oauth2/authorize?response_type=id_token&client_id=" + constant.applicationId + "&redirect_uri=" + constant.postLogoutRedirectUri + "&state=" + guid() + "&client-request-id=" + guid() + "&x-client-SKU=Js&x-client-Ver=1.0.15&nonce=" + guid() + "&prompt=admin_consent";
         window.location.href = url;
     });
 

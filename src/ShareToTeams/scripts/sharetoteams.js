@@ -2,7 +2,7 @@
     // Create config and get AuthenticationContext
     window.config = {
         tenant: constant.tenant,
-        clientId: constant.clientId,
+        clientId: constant.applicationId,
         postLogoutRedirectUri: constant.postLogoutRedirectUri,
         cacheLocation: "localStorage",
         accessToken: "",

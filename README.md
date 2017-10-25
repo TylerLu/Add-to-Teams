@@ -26,7 +26,7 @@ The sample demonstrates:
 
 **Deploying and running this sample requires**:
 * An Azure subscription with permissions to register a new application, and deploy the web app.
-* SDS enabled is a prereq.  The user can use SDS, Teams or the Edu API to create Teams.  
+* Teacher must have associated classes to share as an Assignment.
 * An O365 Education tenant with Microsoft School Data Sync enabled
     * One of the following browsers: Edge, Internet Explorer 9, Safari 5.0.6, Firefox 5, Chrome 13, or a later version of one of these browsers.
       Additionally: Developing/running this sample locally requires the following:  
@@ -47,7 +47,7 @@ The sample demonstrates:
 
 4. Input a **Name**, and select **Web app / API** as **Application Type**.
 
-   Input **Sign-on URL**: https://localhost:44311/. This URL and port can be any that make sense.  In this demo we shows how to run the app locally, and the local site port is 44311.
+   Input **Sign-on URL**: https://localhost:44311/. In this example we will be running code locally on your machine.  You will need to update the port to be the one Visual Studio uses later in this example.
 
    ![](Images/aad-create-app-02.png)
 
@@ -73,7 +73,7 @@ The sample demonstrates:
 
      | API             | Application Permissions | Delegated Permissions                    |
      | --------------- | ----------------------- | ---------------------------------------- |
-     | Microsoft Graph | N/A                     | Sign in and read user profile<br/>Read all users' full profiles<br/>Read and write all groups<br/>Read a limited subset of users' view of the roster<br/>Read and write users' class assignments and their grades |
+     | Microsoft Graph | N/A                     | Sign in and read user profile<br/>Read all users' full profiles<br/>Read and write all groups<br/>Read a limited subset of users' view of the roster<br/> Read and write users' class assignments without grades |
 
      ![](/Images/aad-create-app-06.png)
 
@@ -89,9 +89,9 @@ The sample demonstrates:
 
      Click **Save**, then copy aside the **VALUE** of the key. 
 
-   Close the Settings window.
+   ​
 
-8. Click **Reply URLs**. Add **https://localhost:44311/**  and **https://localhost:44311/views/sharetoteams.html** to it. Make sure replace **yoursiteurl** to the real URL.
+8. Click **Reply URLs**. Add **https://localhost:44311/**  and **https://localhost:44311/views/sharetoteams.html** to it. Replace **https://localhost:44311/** to be the one Visual Studio uses.
 
    ![](Images/aad-create-app-09.png)
 
@@ -121,7 +121,7 @@ Debug the **ShareToTeams**:
 
    ![](Images/proj01.png)
 
-   - **clientId**: use the application Id of the app registration you created earlier.
+   - **applicationId**: use the application Id of the app registration you created earlier.
 
      ![](/Images/aad-create-app-04.png)
 
@@ -150,7 +150,7 @@ The demo is made by pure JavaScript.
 
 ### /scripts/constant.js
 
-This file contains constant parameters like **clientId**, **teanant**, **graphApiUri**.
+This file contains constant parameters like **applicationId**, **teanant**, **graphApiUri**.
 
 ### /scripts/platform.js
 
