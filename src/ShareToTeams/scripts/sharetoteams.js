@@ -1,4 +1,8 @@
-﻿(function () {
+﻿/*   
+ *   * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.  
+ *   * See LICENSE in the project root for license information.  
+ */
+(function () {
     // Create config and get AuthenticationContext
     window.config = {
         tenant: constant.tenant,
@@ -101,7 +105,6 @@
     Post an assignment
     */
     function postAssignment(assignmentName, assignmentDueDate) {
-        // TODO: Allow adding of instructions. Currently a bug with Assignment's API.
        
         var assignment = {
             "displayName": assignmentName,
@@ -371,7 +374,6 @@
     }
 
     function onButton1Click() {
-        // TODO: Replace with thumbnail and snippet generator.
         $("#thumbnail").prop("src", "/assets/khan-256.png");
         $("#caption").empty();
         $("#caption").append("<h5>" + config.userDisplayName + "</h5>");
@@ -395,7 +397,6 @@
         $("#button2").prop("disabled", true);
 
         if (config.actionId === "announcement") {
-            // TODO: sanitize input.
             var announcementText = $("#announcementText").val();
             postAnnouncement(announcementText);
         } else if (config.actionId === "assignment") {

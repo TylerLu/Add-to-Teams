@@ -1,4 +1,8 @@
-﻿(function () {
+﻿/*   
+ *   * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.  
+ *   * See LICENSE in the project root for license information.  
+ */
+(function () {
     var elements = document.getElementsByClassName("sharetoteams");
     Array.prototype.forEach.call(elements, function (element) {
         var url = element.dataset.url;

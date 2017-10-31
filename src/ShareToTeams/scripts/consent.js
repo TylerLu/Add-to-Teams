@@ -1,4 +1,8 @@
-﻿$(function () {
+﻿/*   
+ *   * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.  
+ *   * See LICENSE in the project root for license information.  
+ */
+$(function () {
 
     $("#btnConsent").click(function () {
         var url = constant.AADInstance + constant.tenant + "/oauth2/authorize?response_type=id_token&client_id=" + constant.applicationId + "&redirect_uri=" + constant.postLogoutRedirectUri + "&state=" + guid() + "&client-request-id=" + guid() + "&x-client-SKU=Js&x-client-Ver=1.0.15&nonce=" + guid() + "&prompt=admin_consent";
