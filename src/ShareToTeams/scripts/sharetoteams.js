@@ -62,6 +62,8 @@
         }).fail(function (error) {
             displayError(error);
         });
+        $("#navbar").removeClass("d-none");
+        $("#content").removeClass("d-none");
 
         // Fetch user's picture. jQuery does not support fetching blobs.
         var xhr = new XMLHttpRequest();
@@ -69,8 +71,6 @@
             if (this.readyState === 4 && this.status === 200) {
                 var url = window.URL || window.webkitURL;
                 $("#userphoto").attr("src", url.createObjectURL(this.response));
-                $("#navbar").removeClass("d-none");
-                $("#content").removeClass("d-none");
             }
         }
         xhr.open("GET", constant.graphApiUri + "/" + constant.graphVersion + "/me/photos/48x48/$value");
